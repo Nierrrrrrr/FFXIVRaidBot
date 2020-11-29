@@ -6,18 +6,15 @@ import moment from 'moment';
 import { Jobs } from './interface/jobs';
 import lowdb from 'lowdb';
 import FileSync from 'lowdb/adapters/FileSync';
+import * as BotConfig from './bot-config.json';
 
 const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
-
-let channel = "general";
-let startWord = "!";
-let permittedUsers: string[] = [];
 const dbCreatedEventsKey = 'createdEvents';
 
-const db = lowdb(new FileSync('event.json'));
+const db = lowdb(new FileSync(BotConfig.LOWDB_FILENAME));
 db.defaults({ createdEvents: []}).write();
 
-const helpMsg = "!create [event] [time] [date]";
+const helpMsg = "!create [event] [time] [date]\nEx. !create e7s 22:00 11/30";
 const actions: Actions = {
   help: {
     run: (msg) => {
@@ -29,13 +26,13 @@ const actions: Actions = {
       if (msg.channel instanceof TextChannel) {
         const params = msg.content.split(/\s+/).filter(Boolean).splice(1);
         // [ 'e7s', '23:00', '11/28' ]
-        const eventTitle = params[0];
+        const eventName  = params[0].toLowerCase();
         const timeString = params[1];
         const dateString = params[2];
 
         const eventDate = moment(`${dateString} ${timeString}`, ['MM/DD HH:mm', 'YYYY/MM/DD HH:mm']).toDate()
 
-        const event = PredefinedEvents[eventTitle];
+        const event = PredefinedEvents[eventName];
         if (event) {
           const createdEvent: CreatedEvent = new CreatedEvent(event, eventDate);
           await createdEvent.sendInitEventMsg(client, msg.channel);
@@ -56,9 +53,9 @@ client.on("ready", () => {
 client.on("message", (msg) => {
   if (
     msg.channel instanceof TextChannel &&
-    msg.channel.name === channel &&
-    msg.content.startsWith(startWord) &&
-    permittedUsers.includes(msg.author.id)
+    msg.channel.name === BotConfig.CHANNEL &&
+    msg.content.startsWith(BotConfig.START_WORD) &&
+    BotConfig.PERMITTED_USERS.includes(msg.author.id)
   ) {
     const actionString = msg.content.split(/\s+/)[0].substr(1);
     const action = actions[actionString];
@@ -110,4 +107,4 @@ function findEventByMsgId(msgId: string) {
   return db.get(dbCreatedEventsKey).find({'msgId': msgId});
 }
 
-client.login("BOT_TOKEN");
+client.login(BotConfig.BOT_TOKEN);

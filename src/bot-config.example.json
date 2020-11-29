@@ -1,0 +1,9 @@
+{
+  "BOT_TOKEN": "BOT_TOKEN",
+  "PERMITTED_USERS": [
+    "PERMITTED_USER_ID"
+  ],
+  "START_WORD": "!",
+  "CHANNEL": "CHANNEL_NAME_IN_DISCORD",
+  "LOWDB_FILENAME": "event.json"
+}
