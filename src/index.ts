@@ -3,7 +3,6 @@ import { Actions } from './interface/action';
 import { PredefinedEvents } from './const/predefined-events';
 import { CreatedEvent } from './interface/created-event';
 import moment from 'moment';
-import { Jobs } from './interface/jobs';
 import lowdb from 'lowdb';
 import FileSync from 'lowdb/adapters/FileSync';
 import * as BotConfig from './bot-config.json';
@@ -88,13 +87,17 @@ async function fetchReaction(reaction: MessageReaction) {
 
 async function updateCreatedEventMsg(reaction: MessageReaction, user: User | PartialUser, add: boolean) {
   await fetchReaction(reaction);
+
+  if (!Object.values(BotConfig.EMOJI_NAMES).includes(reaction.emoji.name)) {
+    return;
+  }
   const msg = reaction.message;
   if (msg.author.id === client.user?.id) {
     if (msg.embeds[0].title?.includes('出團調查')) {
       const createdEventData = findEventByMsgId(msg.id).value();
       if (createdEventData) {
         const createdEvent = CreatedEvent.fromData(createdEventData);
-        createdEvent.userReact(user, reaction.emoji.name as Jobs, add);
+        createdEvent.userReact(user, reaction.emoji.name, add);
         await createdEvent.updateEventMsg(client, msg);
         findEventByMsgId(msg.id).assign(createdEvent).write();
       }

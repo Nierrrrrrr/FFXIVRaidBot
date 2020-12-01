@@ -2,7 +2,7 @@ import { Client, Message, MessageEmbed, PartialUser, TextChannel, User } from 'd
 import { PredefinedEvent } from '../const/predefined-events';
 import moment from 'moment';
 import { Emojis } from './emojis';
-import { Jobs } from './jobs';
+import * as BotConfig from '../bot-config.json';
 
 export class CreatedEvent {
   static fromData(event: CreatedEvent) {
@@ -28,16 +28,16 @@ export class CreatedEvent {
   msgId: string;
   event: PredefinedEvent;
   players: {
-    [job in Jobs]: string[];
+    [job: string]: string[];
   }
   date: Date;
 
   private static getEmojis(client: Client): Emojis {
-    const tank = client.emojis.cache.find(emoji => emoji.name === 'tank')?.toString() ?? '';
-    const healer = client.emojis.cache.find(emoji => emoji.name === 'healer')?.toString() ?? '';
-    const mDps = client.emojis.cache.find(emoji => emoji.name === 'mDps')?.toString() ?? '';
-    const prDps = client.emojis.cache.find(emoji => emoji.name === 'prDps')?.toString() ?? '';
-    const mrDps = client.emojis.cache.find(emoji => emoji.name === 'mrDps')?.toString() ?? '';
+    const tank = client.emojis.cache.find(emoji => emoji.name === BotConfig.EMOJI_NAMES.TANK)?.toString() ?? '';
+    const healer = client.emojis.cache.find(emoji => emoji.name === BotConfig.EMOJI_NAMES.HEALER)?.toString() ?? '';
+    const mDps = client.emojis.cache.find(emoji => emoji.name === BotConfig.EMOJI_NAMES.M_DPS)?.toString() ?? '';
+    const prDps = client.emojis.cache.find(emoji => emoji.name === BotConfig.EMOJI_NAMES.PR_DPS)?.toString() ?? '';
+    const mrDps = client.emojis.cache.find(emoji => emoji.name === BotConfig.EMOJI_NAMES.MR_DPS)?.toString() ?? '';
 
     return {
       tank,
@@ -50,7 +50,6 @@ export class CreatedEvent {
 
   private getEmbedMessage(emojis: Emojis) {
     return new MessageEmbed()
-      .setColor('#0099ff')
       .setTitle(this.event.eventTitle)
       .setDescription('請在下方勾選要出的職業類型')
       .addFields(
@@ -97,7 +96,7 @@ export class CreatedEvent {
     return msg;
   }
 
-  userReact(user: User | PartialUser, reaction: Jobs, add: boolean) {
+  userReact(user: User | PartialUser, reaction: string, add: boolean) {
     if (add) {
       if (!this.players[reaction].includes(user.toString())) {
         this.players[reaction].push(user.toString());
